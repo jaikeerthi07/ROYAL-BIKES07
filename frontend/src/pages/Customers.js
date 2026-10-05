@@ -15,6 +15,7 @@ export const Customers = () => {
 
   const [formData, setFormData] = useState({
     name: '',
+    account_code: '',
     email: '',
     phone: '',
     address: '',
@@ -36,7 +37,7 @@ export const Customers = () => {
       const res = await customerService.createCustomer(formData);
       if (res.success) {
         setIsAddModalOpen(false);
-        setFormData({ name: '', email: '', phone: '', address: '', notes: '', status: 'active' });
+        setFormData({ name: '', account_code: '', email: '', phone: '', address: '', notes: '', status: 'active' });
         refetch();
       }
     } catch (err) {
@@ -102,6 +103,7 @@ export const Customers = () => {
             <table className="custom-table">
               <thead>
                 <tr>
+                  <th>Acct Code</th>
                   <th>Client Name</th>
                   <th>Contact Info</th>
                   <th>Address</th>
@@ -113,13 +115,14 @@ export const Customers = () => {
               <tbody>
                 {customers?.length === 0 ? (
                   <tr>
-                    <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                    <td colSpan="7" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
                       No customer records found.
                     </td>
                   </tr>
                 ) : (
                   customers?.map((customer) => (
                     <tr key={customer.id}>
+                      <td><strong>{customer.account_code || '-'}</strong></td>
                       <td><strong>{customer.name}</strong></td>
                       <td>
                         <div style={{ display: 'flex', flexDirection: 'column', fontSize: '0.85rem' }}>
@@ -151,15 +154,27 @@ export const Customers = () => {
       {/* Add Customer Modal */}
       <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Register Customer Record">
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Full Name *</label>
-            <input
-              type="text"
-              required
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="form-input"
-            />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="form-group">
+              <label>Full Name *</label>
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="form-input"
+              />
+            </div>
+            <div className="form-group">
+              <label>Account Code</label>
+              <input
+                type="text"
+                value={formData.account_code}
+                onChange={(e) => setFormData({ ...formData, account_code: e.target.value })}
+                className="form-input"
+                placeholder="e.g. 2917"
+              />
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>

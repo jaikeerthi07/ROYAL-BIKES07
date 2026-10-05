@@ -43,10 +43,23 @@ export const DayBookReport = () => {
     }
   };
 
-  // Auto-calculated closing balance = Opening + Receipts - Vouchers - RTN
+  // Closing balance = Opening + Receipts - Vouchers - RTN
   const closingBalance = reportData
     ? reportData.opening_balance + reportData.receipts_total - reportData.vouchers_total - (reportData.rtn_total || 0)
     : 0;
+
+  // Customers who have RTN Payment — hide their rows from main Receipt/Voucher tables
+  const rtnCustomerNames = new Set(
+    (reportData?.rtn_payments || []).map(r => (r.particulars || '').trim().toUpperCase())
+  );
+  const visibleReceipts = (reportData?.receipts || []).filter(
+    r => !rtnCustomerNames.has((r.particulars || '').trim().toUpperCase())
+  );
+  const visibleVouchers = (reportData?.vouchers || []).filter(
+    v => !rtnCustomerNames.has((v.particulars || '').trim().toUpperCase())
+  );
+  const visibleReceiptsTotal = visibleReceipts.reduce((s, r) => s + r.amount, 0);
+  const visibleVouchersTotal = visibleVouchers.reduce((s, v) => s + v.amount, 0);
 
   return (
     <div>
@@ -179,25 +192,21 @@ export const DayBookReport = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#6366f1', fontWeight: 600 }}>
-                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'left', width: '20%' }}>Date</th>
-                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'left', width: '15%' }}>Receipt No</th>
-                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'left', width: '35%' }}>Particulars</th>
-                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'left', width: '15%' }}>Acct.no</th>
-                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right', width: '15%' }}>Amount</th>
+                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'left', width: '25%' }}>Date</th>
+                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'left', width: '25%' }}>Receipt No</th>
+                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right', width: '50%' }}>Amount</th>
                 </tr>
               </thead>
               <tbody>
-                {reportData.receipts.length === 0 ? (
+                {visibleReceipts.length === 0 ? (
                   <tr>
-                    <td colSpan={5} style={{ padding: '1.5rem 0.5rem', color: '#94a3b8', textAlign: 'center' }}>No receipts for this period</td>
+                    <td colSpan={3} style={{ padding: '1.5rem 0.5rem', color: '#94a3b8', textAlign: 'center' }}>No receipts for this period</td>
                   </tr>
                 ) : (
-                  reportData.receipts.map((row, idx) => (
+                  visibleReceipts.map((row, idx) => (
                     <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ padding: '0.75rem 0.5rem', color: '#334155' }}>{row.date}</td>
                       <td style={{ padding: '0.75rem 0.5rem', color: '#334155' }}>{row.receipt_no}</td>
-                      <td style={{ padding: '0.75rem 0.5rem', fontWeight: 700, color: '#0f172a' }}>{row.particulars}</td>
-                      <td style={{ padding: '0.75rem 0.5rem', color: '#334155' }}>{row.acct_no}</td>
                       <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', fontWeight: 700, color: '#22c55e' }}>
                         {formatCurrency(row.amount)}
                       </td>
@@ -205,9 +214,9 @@ export const DayBookReport = () => {
                   ))
                 )}
                 <tr style={{ borderTop: '1.5px solid #cbd5e1', fontWeight: 800, backgroundColor: '#f0fdf4' }}>
-                  <td colSpan={4} style={{ padding: '0.75rem 0.5rem', color: '#0f172a' }}>Total</td>
+                  <td colSpan={2} style={{ padding: '0.75rem 0.5rem', color: '#0f172a' }}>Total</td>
                   <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', color: '#22c55e' }}>
-                    {formatCurrency(reportData.receipts_total)}
+                    {formatCurrency(visibleReceiptsTotal)}
                   </td>
                 </tr>
               </tbody>
@@ -222,25 +231,21 @@ export const DayBookReport = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#6366f1', fontWeight: 600 }}>
-                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'left', width: '20%' }}>Date</th>
-                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'left', width: '15%' }}>Voucher No</th>
-                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'left', width: '35%' }}>Particulars</th>
-                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'left', width: '15%' }}>Acct.no</th>
-                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right', width: '15%' }}>Amount</th>
+                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'left', width: '25%' }}>Date</th>
+                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'left', width: '25%' }}>Voucher No</th>
+                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right', width: '50%' }}>Amount</th>
                 </tr>
               </thead>
               <tbody>
-                {reportData.vouchers.length === 0 ? (
+                {visibleVouchers.length === 0 ? (
                   <tr>
-                    <td colSpan={5} style={{ padding: '1.5rem 0.5rem', color: '#94a3b8', textAlign: 'center' }}>No vouchers for this period</td>
+                    <td colSpan={3} style={{ padding: '1.5rem 0.5rem', color: '#94a3b8', textAlign: 'center' }}>No vouchers for this period</td>
                   </tr>
                 ) : (
-                  reportData.vouchers.map((row, idx) => (
+                  visibleVouchers.map((row, idx) => (
                     <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ padding: '0.75rem 0.5rem', color: '#334155' }}>{row.date}</td>
                       <td style={{ padding: '0.75rem 0.5rem', color: '#334155' }}>{row.voucher_no}</td>
-                      <td style={{ padding: '0.75rem 0.5rem', fontWeight: 700, color: '#0f172a' }}>{row.particulars}</td>
-                      <td style={{ padding: '0.75rem 0.5rem', color: '#334155' }}>{row.acct_no}</td>
                       <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', fontWeight: 700, color: '#ef4444' }}>
                         {formatCurrency(row.amount)}
                       </td>
@@ -248,52 +253,9 @@ export const DayBookReport = () => {
                   ))
                 )}
                 <tr style={{ borderTop: '1.5px solid #cbd5e1', fontWeight: 800, backgroundColor: '#fef2f2' }}>
-                  <td colSpan={4} style={{ padding: '0.75rem 0.5rem', color: '#0f172a' }}>Total</td>
+                  <td colSpan={2} style={{ padding: '0.75rem 0.5rem', color: '#0f172a' }}>Total</td>
                   <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', color: '#ef4444' }}>
-                    {formatCurrency(reportData.vouchers_total)}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* RTN PAYMENT Section */}
-          <div style={{ marginBottom: '2.5rem' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f97316', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              RTN Payment <span style={{ fontSize: '0.8rem', fontWeight: 500, color: '#64748b' }}>(Refund / Return ↩️)</span>
-            </h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#6366f1', fontWeight: 600 }}>
-                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'left', width: '20%' }}>Date</th>
-                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'left', width: '15%' }}>Voucher No</th>
-                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'left', width: '35%' }}>Particulars</th>
-                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'left', width: '15%' }}>Acct.no</th>
-                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right', width: '15%' }}>Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(reportData.rtn_payments || []).length === 0 ? (
-                  <tr>
-                    <td colSpan={5} style={{ padding: '1.5rem 0.5rem', color: '#94a3b8', textAlign: 'center' }}>No RTN payments for this period</td>
-                  </tr>
-                ) : (
-                  (reportData.rtn_payments || []).map((row, idx) => (
-                    <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '0.75rem 0.5rem', color: '#334155' }}>{row.date}</td>
-                      <td style={{ padding: '0.75rem 0.5rem', color: '#334155' }}>{row.voucher_no}</td>
-                      <td style={{ padding: '0.75rem 0.5rem', fontWeight: 700, color: '#0f172a' }}>{row.particulars}</td>
-                      <td style={{ padding: '0.75rem 0.5rem', color: '#334155' }}>{row.acct_no}</td>
-                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', fontWeight: 700, color: '#f97316' }}>
-                        {formatCurrency(row.amount)}
-                      </td>
-                    </tr>
-                  ))
-                )}
-                <tr style={{ borderTop: '1.5px solid #cbd5e1', fontWeight: 800, backgroundColor: '#fff7ed' }}>
-                  <td colSpan={4} style={{ padding: '0.75rem 0.5rem', color: '#0f172a' }}>Total</td>
-                  <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', color: '#f97316' }}>
-                    {formatCurrency(reportData.rtn_total || 0)}
+                    {formatCurrency(visibleVouchersTotal)}
                   </td>
                 </tr>
               </tbody>
@@ -317,13 +279,9 @@ export const DayBookReport = () => {
               <span>(+) Total Receipt</span>
               <span style={{ fontWeight: 600, color: '#22c55e' }}>+ {formatCurrency(reportData.receipts_total)}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.95rem', color: '#475569' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.85rem', fontSize: '0.95rem', color: '#475569' }}>
               <span>(−) Total Voucher</span>
               <span style={{ fontWeight: 600, color: '#ef4444' }}>− {formatCurrency(reportData.vouchers_total)}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.85rem', fontSize: '0.95rem', color: '#475569' }}>
-              <span>(−) Total RTN Payment</span>
-              <span style={{ fontWeight: 600, color: '#f97316' }}>− {formatCurrency(reportData.rtn_total || 0)}</span>
             </div>
             <div style={{ borderTop: '1.5px solid #d8b4fe', paddingTop: '0.85rem', display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#a855f7' }}>Closing Balance</span>
@@ -333,25 +291,37 @@ export const DayBookReport = () => {
             </div>
           </div>
 
-          {/* Account-wise Breakdown */}
-          {reportData.accounts_breakdown.length > 0 && (
-            <div style={{ maxWidth: '500px', marginBottom: '2.5rem' }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#6366f1', marginBottom: '0.75rem' }}>
-                Account-wise Breakdown
+          {/* Customer Summary */}
+          {(reportData.customer_summary || []).length > 0 && (
+            <div style={{ marginBottom: '2.5rem' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#6366f1', marginBottom: '0.85rem' }}>
+                Customer Summary
               </h3>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.92rem' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
                 <thead>
                   <tr style={{ borderBottom: '1.5px solid #e2e8f0', color: '#6366f1', fontWeight: 600 }}>
-                    <th style={{ padding: '0.75rem 0.5rem', textAlign: 'left' }}>Acct.no</th>
-                    <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Amount</th>
+                    <th style={{ padding: '0.75rem 0.5rem', textAlign: 'left', width: '28%' }}>Customer Name</th>
+                    <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right', width: '18%' }}>Receipt</th>
+                    <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right', width: '18%' }}>Voucher</th>
+                    <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right', width: '18%' }}>RTN Payment</th>
+                    <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right', width: '18%' }}>Net Total</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {reportData.accounts_breakdown.map((row, idx) => (
+                  {reportData.customer_summary.map((row, idx) => (
                     <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '0.75rem 0.5rem', fontWeight: 600, color: '#334155' }}>{row.acct_no}</td>
-                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', fontWeight: 700, color: row.amount < 0 ? '#ef4444' : '#0f172a' }}>
-                        {formatCurrency(row.amount)}
+                      <td style={{ padding: '0.75rem 0.5rem', fontWeight: 700, color: '#0f172a' }}>{row.customer_name || '—'}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', color: '#22c55e', fontWeight: 600 }}>
+                        {row.receipt_total > 0 ? formatCurrency(row.receipt_total) : '—'}
+                      </td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', color: '#ef4444', fontWeight: 600 }}>
+                        {row.voucher_total > 0 ? `− ${formatCurrency(row.voucher_total)}` : '—'}
+                      </td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', color: '#f97316', fontWeight: 600 }}>
+                        {row.rtn_total > 0 ? `− ${formatCurrency(row.rtn_total)}` : '—'}
+                      </td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', fontWeight: 800, color: row.net_total >= 0 ? '#0f172a' : '#ef4444' }}>
+                        {formatCurrency(row.net_total)}
                       </td>
                     </tr>
                   ))}

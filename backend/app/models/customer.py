@@ -6,6 +6,7 @@ class Customer(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False, index=True)
+    account_code = db.Column(db.String(50), unique=True, nullable=True, index=True)
     email = db.Column(db.String(120), unique=True, nullable=True, index=True)
     phone = db.Column(db.String(20), nullable=False, index=True)
     address = db.Column(db.Text, nullable=True)
@@ -21,6 +22,7 @@ class Customer(db.Model):
         return {
             'id': self.id,
             'name': self.name,
+            'account_code': self.account_code,
             'email': self.email,
             'phone': self.phone,
             'address': self.address,

@@ -54,6 +54,10 @@ def create_customer():
     if email and Customer.query.filter_by(email=email).first():
         return jsonify({'success': False, 'message': 'Customer with this email already exists'}), 400
 
+    account_code = data.get('account_code', '').strip() or None
+    if account_code and Customer.query.filter_by(account_code=account_code).first():
+        return jsonify({'success': False, 'message': 'Account code already assigned to another customer'}), 400
+
     # Build address from parts if provided
     address = data.get('address', '').strip()
     if not address:
@@ -69,6 +73,7 @@ def create_customer():
 
     customer = Customer(
         name=name,
+        account_code=account_code,
         email=email,
         phone=phone,
         address=address,
@@ -93,6 +98,13 @@ def update_customer(customer_id):
     data = request.get_json() or {}
     if 'name' in data:
         customer.name = data['name'].strip()
+    if 'account_code' in data:
+        new_code = data['account_code'].strip() or None
+        if new_code:
+            existing = Customer.query.filter_by(account_code=new_code).first()
+            if existing and existing.id != customer_id:
+                return jsonify({'success': False, 'message': 'Account code already assigned to another customer'}), 400
+        customer.account_code = new_code
     if 'email' in data:
         customer.email = data['email'].strip() or None
     if 'phone' in data:

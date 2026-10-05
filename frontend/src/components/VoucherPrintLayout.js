@@ -140,43 +140,53 @@ export const DeliveryChallanPrint = ({ data }) => (
   <div style={box}>
     <VoucherHeader />
 
-    <div style={{ textAlign: 'center', fontSize: '1rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.85rem' }}>
-      DELIVERY CHALLAN
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+      <div style={{ fontSize: '0.9rem' }}><strong>DC No: {data.dc_number}</strong></div>
+      <div style={{ border: '2px solid #000', padding: '0.2rem 1.2rem', fontWeight: 'bold', fontSize: '0.95rem', letterSpacing: '0.05em' }}>DELIVERY CHALLAN</div>
+      <div style={{ fontSize: '0.9rem' }}><strong>Date : {(data.order_date || '').replace(/-/g, '/')}</strong></div>
     </div>
 
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', fontSize: '0.82rem', marginBottom: '0.85rem', border: '1px solid #000', padding: '0.65rem', borderRadius: '4px' }}>
-      <div>
-        <div><strong>DC Number:</strong> {data.dc_number}</div>
-        <div style={{ marginTop: '0.3rem' }}><strong>Order Date:</strong> {data.order_date}</div>
-        <div style={{ marginTop: '0.3rem' }}><strong>Expected Shipment:</strong> {data.expected_shipment_date}</div>
+    <div style={{ marginBottom: '0.6rem', fontSize: '0.88rem' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '0.4rem' }}>
+        <span style={{ fontWeight: 'bold', whiteSpace: 'nowrap', minWidth: '130px' }}>Customer Name :</span>
+        <span style={{ borderBottom: '1px dotted #000', flex: 1, paddingLeft: '0.4rem', fontWeight: 'bold' }}>{data.customer_name}</span>
       </div>
-      <div>
-        <div><strong>Customer Name:</strong> {data.customer_name}</div>
-        <div style={{ marginTop: '0.3rem' }}><strong>Phone:</strong> {data.customer_phone || '-'}</div>
-        <div style={{ marginTop: '0.3rem' }}><strong>Address:</strong> {data.customer_address || 'CHENNAI'}</div>
+      <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '0.4rem' }}>
+        <span style={{ fontWeight: 'bold', whiteSpace: 'nowrap', minWidth: '130px' }}>Address :</span>
+        <span style={{ borderBottom: '1px dotted #000', flex: 1, paddingLeft: '0.4rem' }}>{data.customer_address || ''}</span>
+      </div>
+      <div style={{ borderBottom: '1px dotted #000', marginBottom: '0.4rem', paddingLeft: '130px', minHeight: '1.2rem' }}></div>
+      <div style={{ borderBottom: '1px dotted #000', marginBottom: '0.4rem', paddingLeft: '130px', minHeight: '1.2rem' }}></div>
+      <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '0.4rem' }}>
+        <span style={{ fontWeight: 'bold', whiteSpace: 'nowrap', minWidth: '130px' }}>Ph.No:</span>
+        <span style={{ borderBottom: '1px dotted #000', flex: 1, paddingLeft: '0.4rem' }}>{data.customer_phone || ''}</span>
       </div>
     </div>
 
-    <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '1.25rem', fontSize: '0.82rem' }}>
-      <thead>
-        <tr style={{ borderTop: '1px solid #000', borderBottom: '1px solid #000', background: '#f8fafc' }}>
-          {['Product', 'Qty', 'Engine No', 'Chassis No', 'Color'].map((h) => (
-            <th key={h} style={{ padding: '0.4rem 0.5rem', textAlign: 'left' }}>{h}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-          <td style={{ padding: '0.5rem', fontWeight: 600 }}>{data.product_name}</td>
-          <td style={{ padding: '0.5rem', textAlign: 'center' }}>{data.quantity}</td>
-          <td style={{ padding: '0.5rem' }}>{data.engine_number}</td>
-          <td style={{ padding: '0.5rem' }}>{data.chassis_number}</td>
-          <td style={{ padding: '0.5rem' }}>{data.color}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div style={{ border: '1.5px solid #000', borderRadius: '4px', padding: '0.3rem 1rem', textAlign: 'center', fontWeight: 'bold', fontSize: '0.88rem', marginBottom: '0.75rem', display: 'inline-block', width: '100%', boxSizing: 'border-box' }}>
+      VEHICLE DETAILS
+    </div>
 
-    <Signatures right="Receiver's Signature" />
+    <div style={{ fontSize: '0.88rem', marginBottom: '0.75rem' }}>
+      {[['Model', data.product_name], ['Colour', data.color], ['Engine No', data.engine_number], ['Chassis No', data.chassis_number], ['Key No', data.key_no || ''], ['File No', data.file_no || data.reference_no || '']].map(([label, val]) => (
+        <div key={label} style={{ display: 'flex', alignItems: 'baseline', marginBottom: '0.35rem' }}>
+          <span style={{ fontWeight: 'bold', minWidth: '100px' }}>{label}</span>
+          <span style={{ marginRight: '0.3rem' }}>:</span>
+          <span style={{ borderBottom: '1px dotted #000', flex: 1, paddingLeft: '0.3rem' }}>{val}</span>
+        </div>
+      ))}
+    </div>
+
+    <div style={{ border: '1px solid #888', borderRadius: '4px', padding: '0.5rem 0.75rem', fontSize: '0.72rem', color: '#333', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+      I am taking delivery of vehicle in good condition along with necessary fitting without registration on my own risk. IN case of any damage of Lose, I will be responsible
+    </div>
+
+    <div style={{ textAlign: 'right', fontSize: '0.82rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>For ROYAL BIKES</div>
+
+    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem', fontWeight: 'bold' }}>
+      <div>Customer Signature</div>
+      <div>Authorised Signature</div>
+    </div>
   </div>
 );
 

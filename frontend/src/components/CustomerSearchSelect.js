@@ -32,6 +32,11 @@ export const CustomerSearchSelect = ({
     !selectedCustomerName || c.name.toLowerCase().includes(selectedCustomerName.toLowerCase())
   );
 
+  // Check if the current value is an exact match — no need to show dropdown
+  const isExactMatch = activeCustomerList.some(
+    (c) => c.name.toLowerCase() === (selectedCustomerName || '').toLowerCase()
+  );
+
   return (
     <div style={{ position: 'relative' }}>
       <fieldset className="outlined-fieldset">
@@ -51,7 +56,7 @@ export const CustomerSearchSelect = ({
         />
       </fieldset>
 
-      {isOpen && filtered.length > 0 && (
+      {isOpen && !isExactMatch && filtered.length > 0 && (
         <div style={{
           position: 'absolute',
           top: '100%',

@@ -97,6 +97,30 @@ export const Receipt = () => {
     };
   }, []);
 
+  const handleAccountCodeChange = (e) => {
+    const code = e.target.value;
+    setFormData(prev => ({ ...prev, account_code: code, customer_name: prev.customer_name }));
+    if (code.trim()) {
+      const allCustomers = [...customerService.getStoredCustomers(), ...customerList].filter(
+        (c, i, arr) => arr.findIndex(x => x.account_code === c.account_code) === i
+      );
+      const matched = allCustomers.find(
+        (c) => c.account_code && c.account_code.trim() === code.trim()
+      );
+      if (matched) {
+        setFormData(prev => ({
+          ...prev,
+          account_code: code,
+          customer_name: matched.name
+        }));
+      } else {
+        setFormData(prev => ({ ...prev, account_code: code, customer_name: '' }));
+      }
+    } else {
+      setFormData(prev => ({ ...prev, account_code: code, customer_name: '' }));
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -113,10 +137,36 @@ export const Receipt = () => {
     });
   };
 
+  // Save account_code -> customer_name mapping to localStorage
+  const saveAccountCodeMapping = (account_code, customer_name) => {
+    if (!account_code || !customer_name) return;
+    const customers = customerService.getStoredCustomers();
+    const alreadyExists = customers.find(
+      (c) => c.account_code && c.account_code.trim() === account_code.trim()
+    );
+    if (!alreadyExists) {
+      const newEntry = {
+        id: Date.now(),
+        name: customer_name.toUpperCase(),
+        account_code: account_code.trim(),
+        city: '',
+        mob: '',
+        phone: '',
+        email: '',
+        address: ''
+      };
+      const updated = [newEntry, ...customers];
+      localStorage.setItem('royalbikes_customers', JSON.stringify(updated));
+      window.dispatchEvent(new Event('customerUpdated'));
+    }
+  };
+
   const handleSubmitEntry = async (e) => {
     e.preventDefault();
     if (!formData.customer_name.trim()) { alert('Please enter Customer Name'); return; }
     if (!formData.payment_type) { alert('Please select Payment Type'); return; }
+    // Save account_code -> customer_name mapping for use in other modules
+    saveAccountCodeMapping(formData.account_code, formData.customer_name);
     const nextNo = String(receipts.length + 4698).padStart(5, '0');
     const newEntry = {
       account_code: formData.account_code || '2917',
@@ -193,12 +243,21 @@ export const Receipt = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <fieldset className="outlined-fieldset">
               <legend className="outlined-legend">Account Code</legend>
-              <input type="text" name="account_code" value={formData.account_code} onChange={handleInputChange} className="outlined-input" />
+              <input type="text" name="account_code" value={formData.account_code} onChange={handleAccountCodeChange} className="outlined-input" placeholder="e.g. 2917" />
             </fieldset>
+            {formData.account_code && (() => {
+              const matched = customerList.find(c => c.account_code && c.account_code.trim() === formData.account_code.trim());
+              return matched ? (
+                <div style={{ marginTop: '-1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.85rem', backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '7px', fontSize: '0.85rem', color: '#047857' }}>
+                  <CheckCircle2 size={15} />
+                  <span>Customer found: <strong>{matched.name}</strong></span>
+                </div>
+              ) : null;
+            })()}
 
             <CustomerSearchSelect
               selectedCustomerName={formData.customer_name}
-              onSelectCustomer={(cust) => setFormData((prev) => ({ ...prev, customer_name: cust.name }))}
+              onSelectCustomer={(cust) => setFormData((prev) => ({ ...prev, customer_name: cust.name, account_code: cust.account_code || prev.account_code }))}
               customerList={customerList}
               setCustomerList={setCustomerList}
             />

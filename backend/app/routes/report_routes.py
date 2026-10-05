@@ -155,7 +155,7 @@ def get_day_book_report():
     vouchers_total = sum(v['amount'] for v in vouchers)
     rtn_total = sum(r['amount'] for r in rtn_payments)
 
-    # Opening balance: receipts - vouchers - rtn_payments before from_date
+    # Opening balance: receipts - vouchers - rtn before from_date
     opening_balance = 0.0
     if from_date:
         prev_receipts = Receipt.query.filter(Receipt.status == 'active', Receipt.receipt_date < from_date).all()
@@ -167,21 +167,45 @@ def get_day_book_report():
             - sum(r.amount for r in prev_rtns)
         )
 
+    # Closing balance: RTN included in calculation
     closing_balance = opening_balance + receipts_total - vouchers_total - rtn_total
 
-    # Account-wise breakdown
-    acct_map = {}
+    # Customer-wise summary: Receipt (+), Voucher (-), RTN Payment (-) per customer name
+    customer_map = {}
     for r in receipts_db:
-        key = r.account_code or 'N/A'
-        acct_map[key] = acct_map.get(key, 0.0) + r.amount
+        name = (r.customer_name or '').strip().upper()
+        if not name:
+            continue
+        if name not in customer_map:
+            customer_map[name] = {'receipt_total': 0.0, 'voucher_total': 0.0, 'rtn_total': 0.0}
+        customer_map[name]['receipt_total'] += r.amount
     for v in vouchers_db:
-        key = v.account_code or 'N/A'
-        acct_map[key] = acct_map.get(key, 0.0) - v.amount
+        name = (v.customer_name or '').strip().upper()
+        if not name:
+            continue
+        if name not in customer_map:
+            customer_map[name] = {'receipt_total': 0.0, 'voucher_total': 0.0, 'rtn_total': 0.0}
+        customer_map[name]['voucher_total'] += v.amount
     for r in rtns_db:
-        key = r.account_code or 'N/A'
-        acct_map[key] = acct_map.get(key, 0.0) - r.amount
+        name = (r.customer_name or '').strip().upper()
+        if not name:
+            continue
+        if name not in customer_map:
+            customer_map[name] = {'receipt_total': 0.0, 'voucher_total': 0.0, 'rtn_total': 0.0}
+        customer_map[name]['rtn_total'] += r.amount
 
-    accounts_breakdown = [{'acct_no': k, 'amount': v} for k, v in acct_map.items()]
+    customer_summary = [
+        {
+            'customer_name': name,
+            'receipt_total': round(v['receipt_total'], 2),
+            'voucher_total': round(v['voucher_total'], 2),
+            'rtn_total': round(v['rtn_total'], 2),
+            'net_total': round(v['receipt_total'] - v['voucher_total'] - v['rtn_total'], 2)
+        }
+        for name, v in customer_map.items()
+    ]
+
+    accounts_breakdown = []
 
     return jsonify({
         'success': True,
@@ -195,6 +219,7 @@ def get_day_book_report():
         'vouchers_total': round(vouchers_total, 2),
         'rtn_payments': rtn_payments,
         'rtn_total': round(rtn_total, 2),
+        'customer_summary': customer_summary,
         'accounts_breakdown': accounts_breakdown
     }), 200
 

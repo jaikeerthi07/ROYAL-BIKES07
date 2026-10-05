@@ -60,6 +60,8 @@ export const DeliveryChallan = () => {
     customer_name: '',
     customer_phone: '',
     customer_address: '',
+    key_no: '',
+    file_no: '',
     product_name: 'Royal Enfield Classic 350',
     quantity: 1,
     engine_number: '',
@@ -159,6 +161,8 @@ export const DeliveryChallan = () => {
       customer_name: '',
       customer_phone: '',
       customer_address: '',
+      key_no: '',
+      file_no: '',
       product_name: 'Royal Enfield Classic 350',
       quantity: 1,
       engine_number: '',
@@ -370,7 +374,12 @@ export const DeliveryChallan = () => {
                       <div
                         key={c.id}
                         onMouseDown={() => {
-                          setFormData((prev) => ({ ...prev, customer_name: c.name }));
+                          setFormData((prev) => ({
+                            ...prev,
+                            customer_name: c.name,
+                            customer_phone: c.mob || c.phone || prev.customer_phone,
+                            customer_address: c.address || c.city || prev.customer_address
+                          }));
                           setShowSuggest(false);
                         }}
                         style={{ padding: '0.55rem 1rem', cursor: 'pointer', fontSize: '0.88rem', borderBottom: '1px solid #f1f5f9' }}
@@ -386,7 +395,27 @@ export const DeliveryChallan = () => {
               </div>
             </div>
 
-            {/* Row 2: Sales Type & Reference# */}
+            {/* Row 2: Address, Phone, Key No, File No */}
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '1.25rem' }}>
+              <fieldset className="outlined-fieldset">
+                <legend className="outlined-legend">Customer Address</legend>
+                <input type="text" name="customer_address" value={formData.customer_address} onChange={handleInputChange} className="outlined-input" placeholder="205, Sanjay Nagar, Vyasarpadi, Chennai-600039" />
+              </fieldset>
+              <fieldset className="outlined-fieldset">
+                <legend className="outlined-legend">Phone No</legend>
+                <input type="text" name="customer_phone" value={formData.customer_phone} onChange={handleInputChange} className="outlined-input" placeholder="9876543210" />
+              </fieldset>
+              <fieldset className="outlined-fieldset">
+                <legend className="outlined-legend">Key No</legend>
+                <input type="text" name="key_no" value={formData.key_no} onChange={handleInputChange} className="outlined-input" />
+              </fieldset>
+              <fieldset className="outlined-fieldset">
+                <legend className="outlined-legend">File No</legend>
+                <input type="text" name="file_no" value={formData.file_no} onChange={handleInputChange} className="outlined-input" placeholder="2995" />
+              </fieldset>
+            </div>
+
+            {/* Row 3: Sales Type & Reference# */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
               <fieldset className="outlined-fieldset">
                 <legend className="outlined-legend">Sales Type*</legend>
