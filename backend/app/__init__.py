@@ -94,6 +94,16 @@ def create_app(config_name=None):
             'message': 'Royal Bikes API is running perfectly on Vercel.'
         }), 200
 
+    @app.before_request
+    def initialize_database():
+        if not hasattr(app, '_database_initialized'):
+            try:
+                db.create_all()
+                seed_database()
+            except Exception:
+                pass
+            app._database_initialized = True
+
     return app
 
 

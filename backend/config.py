@@ -9,7 +9,11 @@ load_dotenv()
 pymysql.install_as_MySQLdb()
 
 class Config:
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'mysql://root:jaikeerthi07a@localhost/royal_bikes')
+    sqlite_path = '/tmp/royal_bikes.db'
+    if os.name == 'nt':
+        sqlite_path = 'royal_bikes.db'
+        
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', f'sqlite:///{sqlite_path}')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # File upload configuration
