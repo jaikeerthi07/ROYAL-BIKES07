@@ -1,6 +1,9 @@
 import os
 import pymysql
 from datetime import timedelta
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # 🔹 Make PyMySQL act like MySQLdb (Windows fix)
 pymysql.install_as_MySQLdb()

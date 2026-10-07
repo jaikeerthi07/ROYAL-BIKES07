@@ -60,7 +60,22 @@ def create_app(config_name=None):
 
     @app.errorhandler(500)
     def internal_error(error):
-        db.session.rollback()
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
+
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        # Pass through HTTP errors
+        if hasattr(e, 'code') and isinstance(e.code, int):
+            return jsonify({'success': False, 'message': str(e)}), e.code
+        
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
         return jsonify({'success': False, 'message': 'Internal server error'}), 500
 
     # Index Healthcheck
@@ -72,10 +87,12 @@ def create_app(config_name=None):
             'version': '1.0.0'
         }), 200
 
-    # Auto DB table initialization & seed data
-    with app.app_context():
-        db.create_all()
-        seed_database()
+    @app.route('/', methods=['GET'])
+    def index():
+        return jsonify({
+            'success': True,
+            'message': 'Royal Bikes API is running perfectly on Vercel.'
+        }), 200
 
     return app
 
